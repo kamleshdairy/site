@@ -28,7 +28,8 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font:15px/1.4 system
 #app{height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
 header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:3px solid var(--saffron);background:#fff}
 header img{height:42px}
-header span{font-weight:700;color:var(--deep)}
+header span{font-weight:700;color:var(--deep);font-size:13px;text-align:right;line-height:1.3}
+#iEn{text-transform:uppercase}
 main{flex:1;overflow-y:auto;padding:14px 16px}
 section{display:none}section.on{display:block}
 .gu{display:block;font-weight:500;font-size:.8em;opacity:.85;line-height:1.3}
@@ -199,8 +200,11 @@ let mode="",editId=null;
 const F=$("#itemForm");
 function openForm(id){editId=id;$("#fTitle").innerHTML=id?'Edit Item / વસ્તુ સુધારો':'Add Item / વસ્તુ ઉમેરો';const i=id?it(id):null;F.hidden=false;$("#iEn").value=i?i.en:"";$("#iGu").value=i?i.gu:"";$("#iGu").dataset.auto="";$("#iChips").innerHTML="";$("#iUnit").value=i?i.u:"KG";$("#iEn").focus()}
 function closeForm(){closeKb();F.hidden=true;editId=null}
+const DAYS=["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"],DGU=["રવિવાર","સોમવાર","મંગળવાર","બુધવાર","ગુરુવાર","શુક્રવાર","શનિવાર"];
+function setToday(){const n=new Date(),p=x=>String(x).padStart(2,"0");$("#today").innerHTML=p(n.getDate())+"/"+p(n.getMonth()+1)+"/"+n.getFullYear()+" ("+DAYS[n.getDay()]+')<span class="gu">'+DGU[n.getDay()]+"</span>"}
+setInterval(setToday,60000);
 function render(){
- $("#today").textContent=new Date().toLocaleDateString("en-IN",{day:"numeric",month:"short"});
+ setToday();
  $("#sIn").textContent=D.inward.filter(e=>dk(e.d)===tod).length;
  $("#sOut").textContent=D.outward.filter(e=>dk(e.d)===tod).length;
  const q=i=>{const s=stk(i.id);return`<span class="q ${s<0?"low":""}">${s}</span>`};
@@ -228,7 +232,7 @@ function popup(o){return new Promise(res=>{$("#mi").innerHTML=o.icon;$("#mt").in
  o.btns.forEach(b=>{const x=document.createElement("button");x.type="button";x.className=b.cls;x.innerHTML=b.label;x.onclick=()=>{$("#mdl").hidden=true;res(b.v)};f.appendChild(x)});$("#mdl").hidden=false})}
 let tt;function toast(m){const t=$("#toast");t.innerHTML=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200)}
 const itemCard=(en,gu,u)=>`<div class="pr"><small>Item name / વસ્તુનું નામ</small><b>${esc(en)}</b><b>${esc(gu)}</b></div><div class="pr"><small>Unit / એકમ</small><b>${u} / ${UG[u]||""}</b></div>`;
-F.onsubmit=async e=>{e.preventDefault();const en=$("#iEn").value.trim(),gu=$("#iGu").value.trim(),u=$("#iUnit").value;if(!en||!gu)return;closeKb();
+F.onsubmit=async e=>{e.preventDefault();const en=$("#iEn").value.trim().toUpperCase(),gu=$("#iGu").value.trim(),u=$("#iUnit").value;if(!en||!gu)return;closeKb();
  const dup=D.items.find(i=>i.id!==editId&&(i.en.toLowerCase()===en.toLowerCase()||i.gu===gu));
  if(dup){await popup({icon:IW,title:'Already added<span class="gu">પહેલેથી ઉમેરેલ છે</span>',body:'<p>This item is already in the master list.<span class="gu">આ વસ્તુ માસ્ટર લિસ્ટમાં પહેલેથી છે.</span></p>'+itemCard(dup.en,dup.gu,dup.u),btns:[{label:'OK<span class="gu">બરાબર</span>',cls:"pri",v:1}]});return}
  const v=await popup({icon:IQ,title:editId?'Confirm update<span class="gu">અપડેટ કરવું છે?</span>':'Confirm new item<span class="gu">નવી વસ્તુ ઉમેરવી છે?</span>',body:itemCard(en,gu,u),btns:[{label:'Edit<span class="gu">સુધારો</span>',cls:"sec",v:"edit"},{label:'OK<span class="gu">બરાબર</span>',cls:"pri",v:"ok"}]});
@@ -286,6 +290,8 @@ function bindAuto(en,gu,box){let tm,tk=0,S={tr:"",ph:""};
   clearTimeout(tm);if(!txt||typeof fetch!=="function")return;
   tm=setTimeout(async()=>{const[ph,tr]=await Promise.all([tlOnline(txt),S.tr?null:trOnline(txt)]);if(my!==tk)return;if(ph)S.ph=ph;if(tr)S.tr=tr;apply()},400)});
  gu.addEventListener("input",paint)}
+$("#iEn").setAttribute("autocapitalize","characters");
+$("#iEn").addEventListener("input",()=>{const el=$("#iEn"),a=el.selectionStart,b=el.selectionEnd,u=el.value.toUpperCase();if(u!==el.value){el.value=u;try{el.setSelectionRange(a,b)}catch(e){}}});
 bindAuto($("#iEn"),$("#iGu"),$("#iChips"));bindAuto($("#pEn"),$("#pGu"),$("#pChips"));
 const mt=["ા","િ","ી","ુ","ૂ","ૃ","ે","ૈ","ો","ૌ","ૉ","ૅ"],sg=["ં","ઁ","ઃ","્"];
 const KB={v:[..."અઆઇઈઉઊઋએઐઓઔ",...mt.map(m=>["ક"+m,m]),...sg.map(m=>["ક"+m,m])],
